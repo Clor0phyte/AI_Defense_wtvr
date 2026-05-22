@@ -1,0 +1,11 @@
+venv/
+env/
+__pycache__/
+runs/
+Meters-Water-1/
+*.pyc
+*.pyo
+data/
+*.cache
+.vscode/
+.idea/
