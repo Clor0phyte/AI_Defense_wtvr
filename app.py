@@ -66,6 +66,16 @@ if file:
         bottom_right = bottom_points[1]
         
         src = np.float32([top_left, top_right, bottom_right, bottom_left])
+
+        w, h = cv2.boundingRect(src)[2:]
+        dst = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
+        warped = cv2.warpPerspective(img, cv2.getPerspectiveTransform(src, dst), (w, h))
+        
+        h_w, w_w, _ = warped.shape
+        step = w_w // 8
+        
+        result_text = ""
+        carousel_html = "<div class='carousel-row'>"
         
         for i in range(8):
             crop = warped[:, i*step:(i+1)*step]
