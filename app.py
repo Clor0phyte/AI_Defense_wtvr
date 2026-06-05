@@ -48,18 +48,24 @@ if file:
     
     if obb is not None and len(obb.xyxyxyxy) > 0:
         pts = obb.xyxyxyxy[0].cpu().numpy()
-        s, d = pts.sum(1), np.diff(pts, axis=1)
-        src = np.float32([pts[np.argmin(s)], pts[np.argmin(d)], pts[np.argmax(s)], pts[np.argmax(d)]])
         
-        w, h = cv2.boundingRect(src)[2:]
-        dst = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
-        warped = cv2.warpPerspective(img, cv2.getPerspectiveTransform(src, dst), (w, h))
+        def get_x(point):
+            return point[0] 
+
+        def get_y(point):
+            return point[1] 
         
-        h_w, w_w, _ = warped.shape
-        step = w_w // 8
+        pts = sorted(pts, key=get_y)
+
+        top_points = sorted(pts[:2], key=get_x)
+        top_left = top_points[0]
+        top_right = top_points[1]
         
-        result_text = ""
-        carousel_html = "<div class='carousel-row'>"
+        bottom_points = sorted(pts[2:], key=get_x)
+        bottom_left = bottom_points[0]
+        bottom_right = bottom_points[1]
+        
+        src = np.float32([top_left, top_right, bottom_right, bottom_left])
         
         for i in range(8):
             crop = warped[:, i*step:(i+1)*step]
