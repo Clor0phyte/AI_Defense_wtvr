@@ -44,32 +44,16 @@ if file:
     img = np.array(Image.open(file))
     st.image(img, width=400)
     
-    obb = yolo_model(img)[0].obb
+    results = yolo_model(img)[0]
     
-    if obb is not None and len(obb.xyxyxyxy) > 0:
-        pts = obb.xyxyxyxy[0].cpu().numpy()
+    if results.masks is not None:
+        polygon = results.masks.xy[0].astype(np.int32)
+        mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        cv2.fillPoly(mask, [polygon], 255)
         
-        def get_x(point):
-            return point[0] 
-
-        def get_y(point):
-            return point[1] 
-        
-        pts = sorted(pts, key=get_y)
-
-        top_points = sorted(pts[:2], key=get_x)
-        top_left = top_points[0]
-        top_right = top_points[1]
-        
-        bottom_points = sorted(pts[2:], key=get_x)
-        bottom_left = bottom_points[0]
-        bottom_right = bottom_points[1]
-        
-        src = np.float32([top_left, top_right, bottom_right, bottom_left])
-
-        w, h = cv2.boundingRect(src)[2:]
-        dst = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
-        warped = cv2.warpPerspective(img, cv2.getPerspectiveTransform(src, dst), (w, h))
+        isolated = cv2.bitwise_and(img, img, mask=mask)
+        x, y, w, h = cv2.boundingRect(polygon)
+        warped = isolated[y:y+h, x:x+w]
         
         h_w, w_w, _ = warped.shape
         step = w_w // 8
