@@ -44,7 +44,8 @@ if file:
     img = np.array(Image.open(file))
     st.image(img, width=400)
     
-    results = yolo_model(img)[0]
+    # Знижений поріг впевненості для YOLO (10%)
+    results = yolo_model(img, conf=0.10)[0]
     
     if results.masks is not None:
         polygon = results.masks.xy[0].astype(np.int32)
